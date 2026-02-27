@@ -90,7 +90,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
       // Show confirmation and close the screen
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added $name to GrocyTrack!')),
+        SnackBar(content: Text('Added $name to InvenTrack!')),
       );
       Navigator.of(context).pop();
     } else {

@@ -1,22 +1,28 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'providers/grocery_provider.dart';
-import 'screens/home_screen.dart';
-import 'services/notification_service.dart';
-import 'screens/settings_screen.dart';
+import 'providers/recipe_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 
 final NotificationService notificationService = NotificationService();
-  
+
 void main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env asset
+  await dotenv.load(fileName: '.env');
 
   await notificationService.init();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => GroceryProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => GroceryProvider()),
+        ChangeNotifierProvider(create: (_) => RecipeProvider()),
+      ],
       child: const GrocyTrackApp(),
     ),
   );

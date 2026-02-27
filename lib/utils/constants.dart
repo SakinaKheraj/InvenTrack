@@ -1,5 +1,7 @@
 // lib/utils/constants.dart
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Constants {
   // Database constants
   static const String databaseName = 'grocytrack_db.db';
@@ -38,4 +40,8 @@ class Constants {
     'bottle',
     'box',
   ];
+
+  // AI Constants — loaded from .env at runtime
+  static String get geminiApiKey =>
+      dotenv.env['GEMINI_API_KEY'] ?? 'YOUR_GEMINI_API_KEY_HERE';
 }
