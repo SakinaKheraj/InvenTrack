@@ -4,11 +4,11 @@
 
 ---
 
-## 📱 Screenshots
+<!-- ## 📱 Screenshots
 
-<!-- _Add screenshots here once running on a device._ -->
+<!-- _Add screenshots here once running on a device._
 
----
+--- -->
 
 ## ✨ Features
 
