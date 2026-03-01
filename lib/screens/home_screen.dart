@@ -3,10 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/grocery_provider.dart';
-import '../screens/add_item_screen.dart';
-import '../screens/recipe_screen.dart';
-import '../widgets/grocery_card.dart'; // We'll create this next
-import 'settings_screen.dart';
+import '../utils/app_toast.dart';
+import '../widgets/grocery_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -66,28 +64,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          // Recipe suggestions button
-          IconButton(
-            icon: Icon(Icons.local_dining, color: Colors.green.shade600),
-            tooltip: 'Recipes',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const RecipeScreen()),
-              );
-            },
-          ),
-          // Settings button
-          IconButton(
-            icon: Icon(Icons.settings, color: Colors.green.shade600),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-          ),
         ],
       ),
       body: groceryProvider.isLoading
@@ -112,9 +88,7 @@ class HomeScreen extends StatelessWidget {
                   onDismissed: (direction) {
                     // Delete the item from the database and state
                     groceryProvider.deleteItem(item.id!);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${item.name} deleted.')),
-                    );
+                    AppToast.success(context, '${item.name} removed.');
                   },
                   background: Container(
                     color: Colors.red,
@@ -126,16 +100,6 @@ class HomeScreen extends StatelessWidget {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'addFab',
-        onPressed: () {
-          // Navigate to the screen to add a new item
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const AddItemScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }

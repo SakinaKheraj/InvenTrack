@@ -6,7 +6,7 @@
 
 ## 📱 Screenshots
 
-<!-- > _Add screenshots here once running on a device._ -->
+<!-- _Add screenshots here once running on a device._ -->
 
 ---
 
@@ -25,19 +25,19 @@
   - 🟠 **Orange** — expiring within 7 days
   - 🔴 **Red** — already expired
 - **Low-stock warnings** — items with quantity ≤ 1 are highlighted with a distinct border and badge
-- **Local push notifications** scheduled at the time an item is added or updated to remind you before it expires
+- **Local push notifications** scheduled when an item is added or updated to remind you before it expires
 
 ### 🔀 Smart Sorting
 - Sort your pantry by:
   - **Expiry Date** (default, nearest first)
   - **Name** (A–Z)
   - **Quantity** (low to high)
-- Sort preference is preserved across sessions
 
 ### 🤖 AI Kitchen — Gemini-Powered Recipe Generator
-- Tap **AI Kitchen** to let Google Gemini generate a recipe using **exactly what's in your pantry**
+- Dedicated **AI Kitchen tab** in the bottom navigation
+- Generates a recipe using **exactly what's in your pantry** via Google Gemini
 - Automatically discovers the best available Gemini model for your API key (prefers `gemini-2.0-flash`, falls back gracefully)
-- Handles quota limits — automatically retries with alternative models on `429` responses
+- Handles quota limits — retries with alternative models on `429` responses
 - Generated recipes include:
   - Recipe name
   - Full ingredient list with quantities and units
@@ -49,6 +49,28 @@
 - Tap any past recipe to view its full details again
 - **Delete** individual recipes or clear the entire history
 - A green dot badge on the history icon indicates saved recipes exist
+
+### 📊 Pantry Insights (Analytics Dashboard)
+- Dedicated **Stats tab** with a full analytics dashboard:
+  - **Summary cards** — total items, expiring soon count, expired count
+  - **Expiry donut chart** — visual breakdown of Fresh / Expiring Soon / Expired items with percentage labels
+  - **Category progress bars** — item counts per category shown as clean horizontal bars with colour-coded badges
+  - **Low stock list** — items with quantity ≤ 1 listed with quantity badges
+- All data computed live from the in-memory pantry state — no extra DB queries
+
+### 🔔 In-App Toast Notifications
+- Lightweight **animated top-toast overlay** replaces all snackbars
+- Slides in from the top and fades out automatically after ~2 seconds
+- Color-coded variants: ✅ green (success), 🟠 orange (warning), 🔴 red (error)
+- Never blocks or interferes with the FAB or bottom navigation bar
+
+### 🧭 Navigation
+- Persistent **bottom navigation bar** with four tabs:
+  - 📦 **Inventory** — pantry list
+  - 🍽️ **AI Kitchen** — recipe generator
+  - 📊 **Stats** — analytics dashboard
+  - ⚙️ **Settings** — app preferences
+- Centred gradient **FAB** for quickly adding items from any tab
 
 ### ⚙️ Settings
 - **Delete all grocery records** — with a confirmation dialog, removes all items from local storage
@@ -63,6 +85,7 @@
 | State Management | [Provider](https://pub.dev/packages/provider) `^6.1.1` |
 | Local Database | [sqflite](https://pub.dev/packages/sqflite) `^2.3.0` |
 | AI / LLM | [Google Gemini API](https://aistudio.google.com) via HTTP (`http` package) |
+| Charts | [fl_chart](https://pub.dev/packages/fl_chart) `^1.1.1` |
 | Notifications | [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) `^19.4.2` |
 | Image Picking | [image_picker](https://pub.dev/packages/image_picker) `^1.0.0` |
 | Date Formatting | [intl](https://pub.dev/packages/intl) `^0.18.1` |
@@ -102,34 +125,36 @@ flutter run
 
 ```
 lib/
-├── main.dart                    # App entry point, MultiProvider setup
+├── main.dart                      # App entry point, MultiProvider setup
 ├── models/
-│   ├── grocery_item.dart        # GroceryItem data model
-│   └── recipe.dart              # Recipe + RecipeIngredient models (with DB serialization)
+│   ├── grocery_item.dart          # GroceryItem data model
+│   └── recipe.dart                # Recipe + RecipeIngredient models
 ├── providers/
-│   ├── grocery_provider.dart    # ChangeNotifier for pantry state
-│   └── recipe_provider.dart     # ChangeNotifier for recipe history state
+│   ├── grocery_provider.dart      # Pantry state + analytics computed getters
+│   └── recipe_provider.dart       # Recipe history state
 ├── db/
-│   └── database_helper.dart     # SQLite helper (groceries + recipe_history tables)
+│   └── database_helper.dart       # SQLite helper (groceries + recipe_history tables)
 ├── services/
-│   ├── ai_recipe_service.dart   # Gemini API integration with model discovery & fallback
-│   ├── notification_service.dart# Local push notification scheduling
-│   └── recipe_service.dart      # Offline recipe matching helper
+│   ├── ai_recipe_service.dart     # Gemini API integration with model fallback
+│   ├── notification_service.dart  # Local push notification scheduling
+│   └── recipe_service.dart        # Offline recipe matching
 ├── screens/
 │   ├── splash_screen.dart
-│   ├── main_screen.dart         # Bottom nav shell
-│   ├── home_screen.dart         # Pantry list
-│   ├── add_item_screen.dart     # Add new grocery item
-│   ├── edit_item_screen.dart    # Edit / delete existing item
-│   ├── recipe_screen.dart       # AI Kitchen landing + generation
+│   ├── main_screen.dart           # 4-tab bottom nav shell + gradient FAB
+│   ├── home_screen.dart           # Pantry list with swipe-to-delete
+│   ├── add_item_screen.dart       # Add new grocery item
+│   ├── edit_item_screen.dart      # Edit / delete existing item
+│   ├── stats_screen.dart          # Analytics dashboard (charts + summaries)
+│   ├── recipe_screen.dart         # AI Kitchen landing + generation
 │   ├── recipe_history_screen.dart # Saved AI recipe history
 │   └── settings_screen.dart
 ├── widgets/
-│   └── grocery_card.dart        # Reusable pantry item card with consume dialog
+│   └── grocery_card.dart          # Pantry item card with consume dialog
 ├── data/
-│   └── recipes.dart             # Static offline recipe definitions
+│   └── recipes.dart               # Static offline recipe definitions
 └── utils/
-    └── constants.dart           # DB names, column constants, categories, units, API key
+    ├── constants.dart             # DB names, categories, units, API key
+    └── app_toast.dart             # Animated top-toast overlay utility
 ```
 
 ---
@@ -165,12 +190,12 @@ InvenTrack uses the **Provider** pattern with two `ChangeNotifier` classes:
 
 ```
 MultiProvider
-├── GroceryProvider   → pantry items, sorting, loading state
+├── GroceryProvider   → pantry CRUD, sorting, analytics getters
 └── RecipeProvider    → AI recipe history (load, add, delete)
 ```
 
-- **`GroceryProvider`** — loaded at startup, persists all CRUD operations to SQLite and schedules expiry notifications
-- **`RecipeProvider`** — automatically saves each AI-generated recipe to `recipe_history` table; history is loaded at startup
+- **`GroceryProvider`** — persists all CRUD to SQLite, schedules notifications, and exposes computed analytics getters (`totalItems`, `expiredCount`, `expiringSoonCount`, `freshCount`, `lowStockItems`, `itemsByCategory`)
+- **`RecipeProvider`** — saves each AI-generated recipe to the `recipe_history` table; history is loaded at startup
 
 ---
 
@@ -178,7 +203,7 @@ MultiProvider
 
 > ⚠️ **Do not commit your real Gemini API key to a public repository.**
 
-The API key is currently stored in `lib/utils/constants.dart`. For production or open-source use, consider loading it from:
+The API key is stored in `lib/utils/constants.dart`. For production use, consider loading it from:
 - A `.env` file (using `flutter_dotenv`)
 - A secrets manager
 - Firebase Remote Config

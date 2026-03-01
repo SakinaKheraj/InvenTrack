@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/grocery_item.dart';
 import '../providers/grocery_provider.dart';
 import '../utils/constants.dart';
+import '../utils/app_toast.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -38,7 +39,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<void> _selectExpiryDate() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedExpiryDate ?? DateTime.now().add(const Duration(days: 7)),
+      initialDate:
+          _selectedExpiryDate ?? DateTime.now().add(const Duration(days: 7)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
@@ -69,9 +71,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final quantity = double.tryParse(_quantityController.text) ?? 0.0;
 
       if (quantity <= 0.0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quantity must be greater than zero.')),
-        );
+        AppToast.error(context, 'Quantity must be greater than zero.');
         return;
       }
 
@@ -89,13 +89,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
       Provider.of<GroceryProvider>(context, listen: false).addItem(newItem);
 
       // Show confirmation and close the screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added $name to InvenTrack!')),
-      );
+      AppToast.success(context, 'Added $name to InvenTrack!');
       Navigator.of(context).pop();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and select an expiry date.')),
+      AppToast.warning(
+        context,
+        'Please fill all fields and select an expiry date.',
       );
     }
   }
@@ -103,9 +102,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Item'),
-      ),
+      appBar: AppBar(title: const Text('Add New Item')),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -119,10 +116,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage:
-                        _pickedImage != null ? FileImage(_pickedImage!) : null,
+                    backgroundImage: _pickedImage != null
+                        ? FileImage(_pickedImage!)
+                        : null,
                     child: _pickedImage == null
-                        ? const Icon(Icons.camera_alt, size: 40, color: Colors.white)
+                        ? const Icon(
+                            Icons.camera_alt,
+                            size: 40,
+                            color: Colors.white,
+                          )
                         : null,
                   ),
                 ),
@@ -152,7 +154,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       controller: _quantityController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly, // only allow digits
+                        FilteringTextInputFormatter
+                            .digitsOnly, // only allow digits
                       ],
                       decoration: const InputDecoration(
                         labelText: 'Quantity',
@@ -166,7 +169,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         if (quantity == null) {
                           return 'Please enter a valid number.';
                         }
-                        if(quantity <= 0) {
+                        if (quantity <= 0) {
                           return 'Quantity must be greater than zero.';
                         }
                         return null;
@@ -183,7 +186,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: Constants.units
-                          .map((unit) => DropdownMenuItem(value: unit, child: Text(unit)))
+                          .map(
+                            (unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit),
+                            ),
+                          )
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -204,8 +212,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   border: OutlineInputBorder(),
                 ),
                 items: Constants.categories
-                    .map((category) =>
-                    DropdownMenuItem(value: category, child: Text(category)))
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) {
                   setState(() {

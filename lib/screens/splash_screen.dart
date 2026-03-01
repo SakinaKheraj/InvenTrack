@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,10 +36,8 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 800),
-            pageBuilder: (_, animation, __) => FadeTransition(
-              opacity: animation,
-              child: const HomeScreen(),
-            ),
+            pageBuilder: (_, animation, __) =>
+                FadeTransition(opacity: animation, child: const MainScreen()),
           ),
         );
       }
@@ -55,7 +53,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 204, 203, 195), // use your brand color
+      backgroundColor: const Color.fromARGB(
+        255,
+        204,
+        203,
+        195,
+      ), // use your brand color
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,

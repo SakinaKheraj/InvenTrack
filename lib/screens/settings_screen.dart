@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/grocery_provider.dart';
+import '../utils/app_toast.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -20,21 +21,17 @@ class SettingsScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              Navigator.of(ctx).pop(); 
+              Navigator.of(ctx).pop();
               await context.read<GroceryProvider>().deleteAllItems();
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('All grocery data deleted successfully.'),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
+              AppToast.error(context, 'All grocery data deleted.');
             },
-            child: const Text('Delete All', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Delete All',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -58,10 +55,16 @@ class SettingsScreen extends StatelessWidget {
 
             ElevatedButton.icon(
               icon: const Icon(Icons.delete_forever, color: Colors.white),
-              label: const Text('Delete All Grocery Records', style: TextStyle(color: Colors.white),),
+              label: const Text(
+                'Delete All Grocery Records',
+                style: TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

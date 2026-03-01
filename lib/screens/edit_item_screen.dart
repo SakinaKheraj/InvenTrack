@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/grocery_item.dart';
 import '../providers/grocery_provider.dart';
 import '../utils/constants.dart';
+import '../utils/app_toast.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditItemScreen extends StatefulWidget {
@@ -34,7 +35,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
     super.initState();
     // Initialize controllers and state with the existing item's data
     _nameController = TextEditingController(text: widget.item.name);
-    _quantityController = TextEditingController(text: widget.item.quantity.toString());
+    _quantityController = TextEditingController(
+      text: widget.item.quantity.toString(),
+    );
     _selectedCategory = widget.item.category;
     _selectedUnit = widget.item.unit;
     _selectedExpiryDate = widget.item.expiryDate;
@@ -53,7 +56,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedExpiryDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)), // Allow setting past dates if needed
+      firstDate: DateTime.now().subtract(
+        const Duration(days: 365),
+      ), // Allow setting past dates if needed
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
 
@@ -65,16 +70,15 @@ class _EditItemScreenState extends State<EditItemScreen> {
   }
 
   Future<void> _pickImage() async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-  if (pickedFile != null) {
-    setState(() {
-      _selectedImage = File(pickedFile.path);
-    });
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
-}
-
 
   // Form submission logic for updating an item
   void _submitForm() {
@@ -83,9 +87,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
       final quantity = double.tryParse(_quantityController.text) ?? 0.0;
 
       if (quantity <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quantity must be greater than zero.')),
-        );
+        AppToast.error(context, 'Quantity must be greater than zero.');
         return;
       }
 
@@ -96,17 +98,20 @@ class _EditItemScreenState extends State<EditItemScreen> {
         quantity: quantity,
         unit: _selectedUnit,
         expiryDate: _selectedExpiryDate,
-        imagePath: _selectedImage != null ? _selectedImage!.path : widget.item.imagePath,
+        imagePath: _selectedImage != null
+            ? _selectedImage!.path
+            : widget.item.imagePath,
         // imagePath and createdAt remain the same
       );
 
       // Call the provider to update the item
-      Provider.of<GroceryProvider>(context, listen: false).updateItem(updatedItem);
+      Provider.of<GroceryProvider>(
+        context,
+        listen: false,
+      ).updateItem(updatedItem);
 
       // Show confirmation and close the screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Updated ${widget.item.name} to $name!')),
-      );
+      AppToast.success(context, 'Updated ${widget.item.name} to $name!');
       Navigator.of(context).pop();
     }
   }
@@ -125,7 +130,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Confirm Delete'),
-                  content: Text('Are you sure you want to delete ${widget.item.name}? This cannot be undone.'),
+                  content: Text(
+                    'Are you sure you want to delete ${widget.item.name}? This cannot be undone.',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(),
@@ -134,15 +141,24 @@ class _EditItemScreenState extends State<EditItemScreen> {
                     ElevatedButton(
                       onPressed: () {
                         // Delete item and close both dialog and screen
-                        Provider.of<GroceryProvider>(context, listen: false).deleteItem(widget.item.id!);
+                        Provider.of<GroceryProvider>(
+                          context,
+                          listen: false,
+                        ).deleteItem(widget.item.id!);
                         Navigator.of(ctx).pop();
                         Navigator.of(context).pop(); // Go back to Home Screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${widget.item.name} deleted.')),
+                        AppToast.success(
+                          context,
+                          '${widget.item.name} deleted.',
                         );
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -163,40 +179,43 @@ class _EditItemScreenState extends State<EditItemScreen> {
                 child: GestureDetector(
                   onTap: _pickImage,
                   child: _selectedImage != null
-                    ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        _selectedImage!,
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                    : (widget.item.imagePath != null
-                        ? ClipRRect(
+                      ? ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.file(
-                            File(widget.item.imagePath!),
+                            _selectedImage!,
                             height: 120,
                             width: 120,
                             fit: BoxFit.cover,
                           ),
                         )
-                      : Container(
-                        height: 120,
-                        width: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.camera_alt,
-                         size: 40, color: Colors.grey),
-                    )),
-                  ),
+                      : (widget.item.imagePath != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.file(
+                                  File(widget.item.imagePath!),
+                                  height: 120,
+                                  width: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Container(
+                                height: 120,
+                                width: 120,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              )),
                 ),
+              ),
 
-                const SizedBox(height: 10),
-                const Center(child: Text('Tap image to change')),
+              const SizedBox(height: 10),
+              const Center(child: Text('Tap image to change')),
               const SizedBox(height: 20),
               // Item Name
               TextFormField(
@@ -223,7 +242,8 @@ class _EditItemScreenState extends State<EditItemScreen> {
                       controller: _quantityController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly, // only allow digits
+                        FilteringTextInputFormatter
+                            .digitsOnly, // only allow digits
                       ],
                       decoration: const InputDecoration(
                         labelText: 'Quantity',
@@ -237,7 +257,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
                         if (quantity == null) {
                           return 'Please enter a valid number.';
                         }
-                        if(quantity <= 0) {
+                        if (quantity <= 0) {
                           return 'Quantity must be greater than zero.';
                         }
                         return null;
@@ -254,7 +274,12 @@ class _EditItemScreenState extends State<EditItemScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: Constants.units
-                          .map((unit) => DropdownMenuItem(value: unit, child: Text(unit)))
+                          .map(
+                            (unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit),
+                            ),
+                          )
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -275,8 +300,12 @@ class _EditItemScreenState extends State<EditItemScreen> {
                   border: OutlineInputBorder(),
                 ),
                 items: Constants.categories
-                    .map((category) =>
-                    DropdownMenuItem(value: category, child: Text(category)))
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) {
                   setState(() {
