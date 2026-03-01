@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // You'll need to add the intl package
-import 'package:iventrack/providers/grocery_provider.dart';
+import '../providers/grocery_provider.dart';
 import 'package:provider/provider.dart';
 import '../models/grocery_item.dart';
 import '../screens/edit_item_screen.dart';
@@ -36,7 +36,7 @@ class GroceryCard extends StatelessWidget {
     }
 
     //low quantinty flag logic
-     final bool isLowStock = item.quantity <= 1;
+    final bool isLowStock = item.quantity <= 1;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -44,24 +44,22 @@ class GroceryCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: isLowStock
-          ? const BorderSide(color: Colors.deepOrange, width: 2)
-          : BorderSide.none,
+            ? const BorderSide(color: Colors.deepOrange, width: 2)
+            : BorderSide.none,
       ),
       color: isLowStock ? Colors.deepOrange.shade50 : Colors.white,
       child: ListTile(
         onTap: () {
           // Navigate to the edit screen
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => EditItemScreen(item: item),
-            ),
+            MaterialPageRoute(builder: (context) => EditItemScreen(item: item)),
           );
         },
         leading: Stack(
-          alignment: Alignment.center,  
+          alignment: Alignment.center,
           children: [
             //show image if exists
-            if(item.imagePath != null && item.imagePath!.isNotEmpty) 
+            if (item.imagePath != null && item.imagePath!.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: Image.file(
@@ -69,10 +67,14 @@ class GroceryCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, StackTrace) =>
-                    const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                  errorBuilder: (context, error, StackTrace) => const Icon(
+                    Icons.broken_image,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
                 ),
-              ) else 
+              )
+            else
               CircleAvatar(
                 backgroundColor: expiryColor.withOpacity(0.1),
                 child: Icon(
@@ -81,16 +83,16 @@ class GroceryCard extends StatelessWidget {
                 ),
               ),
 
-            if(isLowStock) 
-            const Positioned(
-              right: -2,
-              top: -2,
-              child: Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.deepOrange,
-                size: 16, 
+            if (isLowStock)
+              const Positioned(
+                right: -2,
+                top: -2,
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.deepOrange,
+                  size: 16,
+                ),
               ),
-            ),
           ],
         ),
         title: Text(
@@ -98,10 +100,11 @@ class GroceryCard extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isLowStock ? Colors.deepOrange.shade700 : Colors.black,
-            ),
+          ),
         ),
         subtitle: Text(
-            'Category: ${item.category}\nAdded: ${DateFormat.yMd().format(item.createdAt)}'),
+          'Category: ${item.category}\nAdded: ${DateFormat.yMd().format(item.createdAt)}',
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -114,7 +117,9 @@ class GroceryCard extends StatelessWidget {
                   '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: isLowStock ? Colors.deepOrange.shade700 : Colors.black,
+                    color: isLowStock
+                        ? Colors.deepOrange.shade700
+                        : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -125,131 +130,142 @@ class GroceryCard extends StatelessWidget {
                       : days == 0
                       ? 'Expires TODAY!'
                       : 'Expires in $days days',
-                  style: TextStyle(fontSize: 12 , color: expiryColor),
+                  style: TextStyle(fontSize: 12, color: expiryColor),
                 ),
               ],
             ),
-                // const SizedBox(width: 10),
-                // Quick Action Button
-                IconButton(
-                  icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                  tooltip: 'Mark as Used',
-                  onPressed: () => _showConsumeDialog(context, item),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  splashRadius: 20,
-                ),
-              ],
+            // const SizedBox(width: 10),
+            // Quick Action Button
+            IconButton(
+              icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+              tooltip: 'Mark as Used',
+              onPressed: () => _showConsumeDialog(context, item),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              splashRadius: 20,
             ),
-          ),
-        );
-      }
+          ],
+        ),
+      ),
+    );
+  }
 
   // Modal Dialog for entering consumption amount
   void _showConsumeDialog(BuildContext context, GroceryItem item) {
-  final TextEditingController controller = TextEditingController(text: '1');
-  double availableQuantity = item.quantity;
+    final TextEditingController controller = TextEditingController(text: '1');
+    double availableQuantity = item.quantity;
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('Consume ${item.name}'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Available: ${availableQuantity.toStringAsFixed(2)} ${item.unit}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Decrease button
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: () {
-                        double current = double.tryParse(controller.text) ?? 0;
-                        if (current > 0) {
-                          setState(() => controller.text = (current - 1).toString());
-                        }
-                      },
-                    ),
-                    // TextField for manual entry
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        controller: controller,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Consume ${item.name}'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Available: ${availableQuantity.toStringAsFixed(2)} ${item.unit}',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Decrease button
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () {
+                          double current =
+                              double.tryParse(controller.text) ?? 0;
+                          if (current > 0) {
+                            setState(
+                              () => controller.text = (current - 1).toString(),
+                            );
+                          }
+                        },
+                      ),
+                      // TextField for manual entry
+                      SizedBox(
+                        width: 60,
+                        child: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                          ),
                         ),
                       ),
-                    ),
-                    // Increase button
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () {
-                        double current = double.tryParse(controller.text) ?? 0;
-                        if (current < availableQuantity) {
-                          setState(() => controller.text = (current + 1).toString());
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Cannot exceed available quantity (${availableQuantity.toStringAsFixed(2)} ${item.unit})',
+                      // Increase button
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        onPressed: () {
+                          double current =
+                              double.tryParse(controller.text) ?? 0;
+                          if (current < availableQuantity) {
+                            setState(
+                              () => controller.text = (current + 1).toString(),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Cannot exceed available quantity (${availableQuantity.toStringAsFixed(2)} ${item.unit})',
+                                ),
                               ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(controller.text) ?? 1;
-              if (amount > availableQuantity) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Cannot consume more than available quantity!')),
-                );
-                return;
-              }
-
-              await context.read<GroceryProvider>().markAsUsed(item, amount);
-              Navigator.pop(context);
-
-              final updatedQuantity = item.quantity - amount;
-              if (updatedQuantity <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} used up and removed')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} used ($amount ${item.unit})')),
-                );
-              }
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
-            child: const Text('Confirm'),
           ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final amount = double.tryParse(controller.text) ?? 1;
+                if (amount > availableQuantity) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Cannot consume more than available quantity!',
+                      ),
+                    ),
+                  );
+                  return;
+                }
 
+                await context.read<GroceryProvider>().markAsUsed(item, amount);
+                Navigator.pop(context);
+
+                final updatedQuantity = item.quantity - amount;
+                if (updatedQuantity <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${item.name} used up and removed')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${item.name} used ($amount ${item.unit})'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('IvenTrack 🧺'),
+        title: const Text('InvenTrack'),
         actions: [
           // Sorting popup menu
           PopupMenuButton<SortOption>(
